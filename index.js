@@ -9,20 +9,22 @@ const loader = new PDFLoader("./nke-10k-2023.pdf");
 const docs = await loader.load();
 
 const textSplitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 200,
+    chunkSize: 1000,
+    chunkOverlap: 200,
 });
 
 const allSplits = await textSplitter.splitDocuments(docs);
 
 const embeddings = new OllamaEmbeddings({
-  model: "mxbai-embed-large", 
-  baseUrl: process.env.OLLAMA_BASE_URL, 
+    model: "mxbai-embed-large",
+    baseUrl: process.env.OLLAMA_BASE_URL,
 });
 
-const vector1 = await embeddings.embedQuery(allSplits[0].pageContent);
-const vector2 = await embeddings.embedQuery(allSplits[1].pageContent);
+const vectorStore = new MemoryVectorStore(embeddings);
+await vectorStore.addDocuments(allSplits);
 
-console.log(vector1.length === vector2.length);
-console.log(`Generated vectors of length ${vector1.length}\n`);
-console.log(vector1.slice(0, 10));
+const results1 = await vectorStore.similaritySearch(
+    "When was Nike incorporated?"
+);
+
+console.log(results1[0]);
