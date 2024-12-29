@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-import { OpenAIEmbeddings } from "@langchain/openai";
+import { OllamaEmbeddings } from "@langchain/ollama";
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 
 
-const loader = new PDFLoader("./nke-10k-2023.pdf");
+const loader = new PDFLoader("./news.pdf");
 
 const docs = await loader.load();
 
@@ -16,20 +16,20 @@ const textSplitter = new RecursiveCharacterTextSplitter({
 
 const allSplits = await textSplitter.splitDocuments(docs);
 
-const embeddings = new OpenAIEmbeddings({
-    apiKey: process.env.OPENAI_API_KEY,
-    model: "text-embedding-3-large"
+const embeddings = new OllamaEmbeddings({
+    // apiKey: process.env.OPENAI_API_KEY,
+    model: "mxbai-embed-large:latest"
 });
 
 const vectorStore = new Chroma(embeddings, {
-    collectionName: "a-test-collection",
+    collectionName: "a-new-test-collection2",
     url: "http://0.0.0.0:8000",
 });
 
 await vectorStore.addDocuments(allSplits);
 
 const results2 = await vectorStore.similaritySearchWithScore(
-    "What was Nike's revenue in 2023?"
+    "What Purdue SAFE-RWSL surveillance system built to prevent airport runway incursions?"
 );
 
 
